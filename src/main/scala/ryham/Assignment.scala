@@ -32,8 +32,19 @@ import org.apache.log4j.Level
 
 object Assignment extends App {
   println("Assignment Main Starting ----------------------------------------")
+  
   def task1() = {
-      println("Task1 starting")
+  	// X and Y coordinate columns are taken from trafficAccidentDataFrame df
+    val data: DataFrame = trafficAccidentDataFrame.select("X","Y")
+    
+    import org.apache.spark.ml.feature.VectorAssembler
+    
+		val vectorAssembler = new VectorAssembler()
+		.setInputCols(Array("X", "Y"))
+		.setOutputCol("features")
+
+    
+//		myDf.show()
    }
   
   def task2() = {
@@ -71,7 +82,7 @@ object Assignment extends App {
                                            .option("inferSchema", "true")
                                            .load("data/tieliikenneonnettomuudet_2015_onnettomuus.csv")
   val staticSchema = trafficAccidentDataFrame.schema
-  trafficAccidentDataFrame.printSchema()
+//  trafficAccidentDataFrame.printSchema()
   
   // Asks the user input in format "task n" where n is 1-6
   val name = scala.io.StdIn.readLine().split(" ")
