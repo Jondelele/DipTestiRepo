@@ -32,8 +32,30 @@ import org.apache.log4j.Level
 
 object Assignment extends App {
   println("Assignment Main Starting ----------------------------------------")
+  def task1() = {
+      println("Task1 starting")
+   }
+  
+  def task2() = {
+      println("Task2 starting")
+   }
+  
+  def task3() = {
+      println("Task3 starting")
+   }
+  
+  def task4() = {
+      println("Task4 starting")
+   }
 
-	// Suppress the log messages:
+  def task5() = {
+      println("Task5 starting")
+   }
+  
+  def task6() = {
+      println("Task6 starting")
+   }
+  // Suppress the log messages:
   Logger.getLogger("org").setLevel(Level.ERROR)
 
   val spark = SparkSession.builder()
@@ -56,15 +78,15 @@ object Assignment extends App {
   
   // Launches the right function matching the
   name(1).toInt match {
-  	case 1  => println("task 1 selected")
-	  case 2  => println("task 2 selected")
-	  case 3  => println("task 3 selected")
-	  case 4  => println("task 4 selected")
-    case 5  => println("task 5 selected")
-    case 6  => println("task 6 selected")
+    case 1  => task1()
+    case 2  => task2()
+    case 3  => task3()
+    case 4  => task4()
+    case 5  => task5()
+    case 6  => task6()
     // catch the default with a variable so you can print it
     case whoa  => println("Unexpected case: " + whoa.toString)
 }
 
-	println("Assignment Main Ending ------------------------------------------")
+  println("Assignment Main Ending ------------------------------------------")
 }

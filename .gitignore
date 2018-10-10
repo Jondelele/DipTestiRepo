@@ -24,3 +24,4 @@ hadoop-tools/hadoop-openstack/src/test/resources/contract-test-options.xml
 
 
 # End of https://www.gitignore.io/api/scala,apachehadoop
+/bin/
