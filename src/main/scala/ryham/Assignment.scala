@@ -35,16 +35,42 @@ object Assignment extends App {
   
   def task1() = {
   	// X and Y coordinate columns are taken from trafficAccidentDataFrame df
-    val data: DataFrame = trafficAccidentDataFrame.select("X","Y")
+    val data: DataFrame = trafficAccidentDataFrame.select("X","Y").limit(1000)
     
-    import org.apache.spark.ml.feature.VectorAssembler
+    import org.apache.spark.ml.clustering.{KMeans, KMeansModel}
+		import org.apache.spark.ml.linalg.Vectors
+		import org.apache.spark.ml.feature.VectorAssembler
     
 		val vectorAssembler = new VectorAssembler()
 		.setInputCols(Array("X", "Y"))
 		.setOutputCol("features")
 
-    
-//		myDf.show()
+		import org.apache.spark.ml.Pipeline
+		val transformationPipeline = new Pipeline().setStages(Array(vectorAssembler))
+		
+		val pipeLine = transformationPipeline.fit(data)
+		val transformedTraining = pipeLine.transform(data)
+		transformedTraining.show
+		
+		println("kohta 1")
+		
+		val kmeans = new KMeans()
+		.setK(300)
+		.setSeed(1L)
+		
+		println("kohta 2")
+		
+		val kmModel = kmeans.fit(transformedTraining)
+		
+		println("kohta 3")
+		
+		val centers = kmModel.clusterCenters
+		
+		scala.tools.nsc.io.File("results/basic.csv").appendAll("x,y" + "\n")
+		for (center <- centers) {
+			println(center(0) + "," + center(1))
+			scala.tools.nsc.io.File("results/basic.csv").appendAll(center(0) + "," + center(1) + "\n")
+		}
    }
   
   def task2() = {
