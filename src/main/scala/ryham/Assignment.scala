@@ -44,16 +44,32 @@ import scala.collection.immutable.Vector
 object Assignment extends App {
   println("Assignment Main Starting ----------------------------------------")
   
-  def calculateVx(dayInt:Double): Double= {
+  // Turns radians into weekdays (1-7)
+  def turnRadToDays(rad:Double): Double= {
+  	if (rad < 0){
+  		var tempRad = 0.0
+  		tempRad = Pi - rad
+  		return (tempRad/(2*Pi))*7+1
+  		
+  	} else {
+  		return (rad/(2*Pi))*7+1
+  	}
+	}
+  
+  // Calculates the weekdays X coordinate and returns it
+  def calculateWx(dayInt:Double): Double= {
 	  return sin(2*Pi*dayInt/7)
 	}
-  val calculateVxUdf = udf(calculateVx _)
+  val calculateWxUdf = udf(calculateWx _)
   
-  def calculateVy(dayInt:Double): Double= {
+  // Calculates the weekdays Y coordinate and returns it
+  def calculateWy(dayInt:Double): Double= {
 	  return cos(2*Pi*dayInt/7)
 	}
-  val calculateVyUdf = udf(calculateVy _)
+  val calculateWyUdf = udf(calculateWy _)
   
+  // Converts the Vkpv from string into int, so it can be 
+  // used in task 2 calculations
   def convertDayToInt(Vkpv:String): Int = {
     if (Vkpv == "Maanantai") {
     	return 1
@@ -85,8 +101,6 @@ object Assignment extends App {
   def task1() = {
   	// X and Y coordinate columns are taken from trafficAccidentDataFrame df
     val data: DataFrame = trafficAccidentDataFrame.select("X","Y").limit(1000)
-    
-    
     
 		val vectorAssembler = new VectorAssembler()
 		.setInputCols(Array("X", "Y"))
@@ -120,65 +134,46 @@ object Assignment extends App {
 		}
    }
   
-  
-  // Notes explaining the Task 2
-  // We must divide the accidents on a unit circle, and calculate their x and y coordinates
-  // with SIN and COS. After this the data is ready to be used in 3 dimensions.
-  // Main problem in the adding of the weekday is that the weekdays monday and sunday for example
-  // are considered to be far away from each other, and in reality we want the boundary to be cyclic
-  // Meaning that also Monday and Sunday could be in the same cluster.
-  // x=sin(2pi*dayOfTheWeekInt/7),y=cos(2pi*dayOfTheWeekInt/7)
+  // Function which holds the iplementation of task 2
   def task2() = {
-      println("Task2 starting")
-      println("Task Two Kohta 1 ----------------------------------------")
-      
-      // X and Y coordinate columns are taken from trafficAccidentDataFrame df
+      // X, Y and Vkpv columns are taken from trafficAccidentDataFrame, because
+      // everything else is unnecessary DataFrame size is limited to 3000 because bigger
+  		// samples cause out of memory issue
 	    val data: DataFrame = trafficAccidentDataFrame.select("X","Y","Vkpv").limit(3000)
 	    
 			val turnWeekdayToInt = udf(convertDayToInt _)
-	    
+			
+			// Adds new column to the DataFrame which holds the days as int (1-7)
 	    val dataWithDayInt = data.withColumn("dayInt", turnWeekdayToInt(col("Vkpv")))
 	    
-    	val dataWithVxCoordi = dataWithDayInt.withColumn("Vx", calculateVxUdf(col("dayInt")))
-	    val dataWithVyCoordi = dataWithVxCoordi.withColumn("Vy", calculateVyUdf(col("dayInt")))
+	    // Adds the X and Y coordinates of the days in to the DataFrame functions
+	    // calculateWxUdf and calculateWyUdf are defined on top of the file
+    	val dataWithWxCoordi = dataWithDayInt.withColumn("Wx", calculateWxUdf(col("dayInt")))
+	    val dataWithWxWyCoordi = dataWithWxCoordi.withColumn("Wy", calculateWyUdf(col("dayInt")))
 	    
+	    // K-means requires the data in vector form, so it is changed to vector
 	    val vectorAssembler = new VectorAssembler()
-			.setInputCols(Array("X", "Y","Vx","Vy"))
+			.setInputCols(Array("X", "Y","Wx","Wy"))
 			.setOutputCol("features")
 			
 			import org.apache.spark.ml.Pipeline
 			val transformationPipeline = new Pipeline().setStages(Array(vectorAssembler))
 			
-			val pipeLine = transformationPipeline.fit(dataWithVyCoordi) // Error
-			val transformedTraining = pipeLine.transform(dataWithVyCoordi)
+			val pipeLine = transformationPipeline.fit(dataWithWxWyCoordi)
+			val transformedTraining = pipeLine.transform(dataWithWxWyCoordi)
 			
+			// Calculates the kmeans for 300 clusters and random seed
 			val kmeans = new KMeans().setK(300).setSeed(1L)
 			
-			println("kohta 2")
-			
 			val kmModel = kmeans.fit(transformedTraining)
-			
-			println("kohta 3")
-			
 			var centers = kmModel.clusterCenters
-			
-			def turnRadToDays(rad:Double): Double= {
-      	
-      	if (rad < 0){
-      		var tempRad = 6666.66
-      		tempRad = Pi - rad
-      		println((tempRad/(2*Pi))*7+1)
-      		return (tempRad/(2*Pi))*7+1
-      		
-      	} else {
-      		println((rad/(2*Pi))*7+1)
-      		return (rad/(2*Pi))*7+1
-      	}
-			}
+      
+			// Adds the line "x,y,dow" in the top of the result file
 			scala.tools.nsc.io.File("results/task2.csv").appendAll("x,y,dow" + "\n")
+			
+			// This for-loop turns weekday coordinates into days (1-7) and appends
+			// the lines into result csv file
 			for (center <- centers) {
-//				println(center(0) + "   " + center(1) + "   " + atan2(center(3), center(2)))
-				
 				scala.tools.nsc.io.File("results/task2.csv").appendAll(center(0) + "," + center(1) + "," +
 								turnRadToDays(atan2(center(3), center(2))) + "\n")
 			}
@@ -218,20 +213,19 @@ object Assignment extends App {
 //  trafficAccidentDataFrame.printSchema()
   
   // Asks the user input in format "task n" where n is 1-6
-//  val name = scala.io.StdIn.readLine().split(" ")
+  val name = scala.io.StdIn.readLine().split(" ")
   
-  task2()
   // Launches the right function matching the
-//  name(1).toInt match {
-//    case 1  => task1()
-//    case 2  => task2()
-//    case 3  => task3()
-//    case 4  => task4()
-//    case 5  => task5()
-//    case 6  => task6()
-//    // catch the default with a variable so you can print it
-//    case whoa  => println("Unexpected case: " + whoa.toString)
-//}
+  name(1).toInt match {
+    case 1  => task1()
+    case 2  => task2()
+    case 3  => task3()
+    case 4  => task4()
+    case 5  => task5()
+    case 6  => task6()
+    // catch the default with a variable so you can print it
+    case whoa  => println("Unexpected case: " + whoa.toString)
+}
 
   println("Assignment Main Ending ------------------------------------------")
 }
