@@ -133,7 +133,7 @@ object Assignment extends App {
       println("Task Two Kohta 1 ----------------------------------------")
       
       // X and Y coordinate columns are taken from trafficAccidentDataFrame df
-	    val data: DataFrame = trafficAccidentDataFrame.select("X","Y","Vkpv").limit(100)
+	    val data: DataFrame = trafficAccidentDataFrame.select("X","Y","Vkpv").limit(3000)
 	    
 			val turnWeekdayToInt = udf(convertDayToInt _)
 	    
@@ -160,12 +160,27 @@ object Assignment extends App {
 			
 			println("kohta 3")
 			
-			val centers = kmModel.clusterCenters
+			var centers = kmModel.clusterCenters
 			
-//			centers.foreach(println)
-	   			
+			def turnRadToDays(rad:Double): Double= {
+      	
+      	if (rad < 0){
+      		var tempRad = 6666.66
+      		tempRad = Pi - rad
+      		println((tempRad/(2*Pi))*7+1)
+      		return (tempRad/(2*Pi))*7+1
+      		
+      	} else {
+      		println((rad/(2*Pi))*7+1)
+      		return (rad/(2*Pi))*7+1
+      	}
+			}
+			scala.tools.nsc.io.File("results/task2.csv").appendAll("x,y,dow" + "\n")
 			for (center <- centers) {
-				println(center(0) + "   " + center(1) + "   " + atan2(center(3), center(2)))
+//				println(center(0) + "   " + center(1) + "   " + atan2(center(3), center(2)))
+				
+				scala.tools.nsc.io.File("results/task2.csv").appendAll(center(0) + "," + center(1) + "," +
+								turnRadToDays(atan2(center(3), center(2))) + "\n")
 			}
 		}
   
