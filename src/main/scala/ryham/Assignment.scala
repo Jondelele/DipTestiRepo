@@ -111,6 +111,7 @@ object Assignment extends App {
 		
 		val pipeLine = transformationPipeline.fit(data) // Error
 		val transformedTraining = pipeLine.transform(data)
+		
 		transformedTraining.show
 		
 		println("kohta 1")
@@ -120,6 +121,8 @@ object Assignment extends App {
 		.setSeed(1L)
 		
 		println("kohta 2")
+		
+		
 		
 		val kmModel = kmeans.fit(transformedTraining)
 		
@@ -180,10 +183,63 @@ object Assignment extends App {
 		}
   
   def task3() = {
-      println("Task3 starting")
+    
+      println("Task3 alkaa")
+      
+      // X and Y coordinate columns are taken from trafficAccidentDataFrame df
+    val data: DataFrame = trafficAccidentDataFrame.select("X","Y").limit(1000)
+    
+		val vectorAssembler = new VectorAssembler()
+		.setInputCols(Array("X", "Y"))
+		.setOutputCol("features")
+
+		import org.apache.spark.ml.Pipeline
+		val transformationPipeline = new Pipeline().setStages(Array(vectorAssembler))
+		
+		val pipeLine = transformationPipeline.fit(data) // Error
+		val transformedTraining = pipeLine.transform(data)
+		
+		transformedTraining.show
+		
+		println("kohta 1")
+      
+		val i = 0
+		
+		println("kohta 2")
+		
+		import org.apache.spark.ml.clustering.{KMeans, KMeansModel}
+    import org.apache.spark.ml.linalg.Vectors
+    
+    
+    for ( i <-100 to 200){		
+       val kmeans = new KMeans()
+  		.setK(i)
+  		.setSeed(1L)
+  		val model = kmeans.fit(transformedTraining)
+  		// Evaluate clustering by computing Within Set Sum of Squared Errors
+      val WSSSE = model.computeCost(transformedTraining)
+      println(i + ":  " + s"Within Set Sum of Squared Errors = $WSSSE")
+    }
+    
+  
+
+//    // Shows the result.
+//    println("Cluster Centers: ")
+//    model.clusterCenters.foreach(println)
+		
+		
+		
+
+		
+		println("kohta 3")
+		
+
    }
+      
   
   def task4() = {
+    
+    
       println("Task4 starting")
    }
 
