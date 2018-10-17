@@ -97,6 +97,7 @@ object Assignment extends App {
 		   return 999
 		}
   }
+  val turnWeekdayToInt = udf(convertDayToInt _)
   
   def task1() = {
   	// X and Y coordinate columns are taken from trafficAccidentDataFrame df
@@ -144,7 +145,7 @@ object Assignment extends App {
   		// samples cause out of memory issue
 	    val data: DataFrame = trafficAccidentDataFrame.select("X","Y","Vkpv").limit(3000)
 	    
-			val turnWeekdayToInt = udf(convertDayToInt _)
+//			val turnWeekdayToInt = udf(convertDayToInt _)
 			
 			// Adds new column to the DataFrame which holds the days as int (1-7)
 	    val dataWithDayInt = data.withColumn("dayInt", turnWeekdayToInt(col("Vkpv")))
@@ -184,9 +185,9 @@ object Assignment extends App {
   
   def task4() = {
     
-      println("Task3 alkaa")
+    println("Task4 alkaa")
       
-      // X and Y coordinate columns are taken from trafficAccidentDataFrame df
+    // X and Y coordinate columns are taken from trafficAccidentDataFrame df
     val data: DataFrame = trafficAccidentDataFrame.select("X","Y").limit(1000)
     
 		val vectorAssembler = new VectorAssembler()
@@ -196,47 +197,69 @@ object Assignment extends App {
 		import org.apache.spark.ml.Pipeline
 		val transformationPipeline = new Pipeline().setStages(Array(vectorAssembler))
 		
-		val pipeLine = transformationPipeline.fit(data) // Error
+		val pipeLine = transformationPipeline.fit(data)
 		val transformedTraining = pipeLine.transform(data)
 		
-		transformedTraining.show
+//		transformedTraining.show
 		
 		println("kohta 1")
-      
-		val i = 0
-		
-		println("kohta 2")
 		
 		import org.apache.spark.ml.clustering.{KMeans, KMeansModel}
     import org.apache.spark.ml.linalg.Vectors
     
+    var k = 0
     
-    for ( i <-2 to 400){		
+    // For-loop calculates the Within Set Sum of Squared Errors for the
+    // amount of clusters of our choosing
+//    for ( k <-2 to 400){		
+//       val kmeans = new KMeans()
+//  		.setK(k)
+//  		.setSeed(1L)
+//  		val model = kmeans.fit(transformedTraining)
+//  		// Evaluate clustering by computing Within Set Sum of Squared Errors
+//      val WSSSE = model.computeCost(transformedTraining)
+//      //println(i + ":  " + s"Within Set Sum of Squared Errors = $WSSSE")
+//      println(WSSSE)
+//   	}
+
+		println("Here starts the Task 4 Third Dimension elbow task ---------------------------------------------------------------") 
+    val dataVkpv: DataFrame = trafficAccidentDataFrame.select("X","Y","Vkpv").limit(3000)
+		
+		// Adds new column to the DataFrame which holds the days as int (1-7)
+    val dataWithDayInt = dataVkpv.withColumn("dayInt", turnWeekdayToInt(col("Vkpv")))
+    
+    // Adds the X and Y coordinates of the days in to the DataFrame functions
+    // calculateWxUdf and calculateWyUdf are defined on top of the file
+  	val dataWithWxCoordi = dataWithDayInt.withColumn("Wx", calculateWxUdf(col("dayInt")))
+    val dataWithWxWyCoordi = dataWithWxCoordi.withColumn("Wy", calculateWyUdf(col("dayInt")))
+    
+    // K-means requires the data in vector form, so it is changed to vector
+    val vectorAssemblerThird = new VectorAssembler()
+		.setInputCols(Array("X", "Y","Wx","Wy"))
+		.setOutputCol("features")
+		
+		import org.apache.spark.ml.Pipeline
+		val transformationPipelineThird = new Pipeline().setStages(Array(vectorAssemblerThird))
+		
+		val pipeLineThird = transformationPipelineThird.fit(dataWithWxWyCoordi)
+		val transformedTrainingThird = pipeLineThird.transform(dataWithWxWyCoordi)
+		
+		k = 0
+    // For-loop calculates the Within Set Sum of Squared Errors for the
+    // amount of clusters of our choosing
+    for ( k <-2 to 400){		
        val kmeans = new KMeans()
-  		.setK(i)
+  		.setK(k)
   		.setSeed(1L)
-  		val model = kmeans.fit(transformedTraining)
+  		val model = kmeans.fit(transformedTrainingThird)
   		// Evaluate clustering by computing Within Set Sum of Squared Errors
-      val WSSSE = model.computeCost(transformedTraining)
-      //println(i + ":  " + s"Within Set Sum of Squared Errors = $WSSSE")
-      println(WSSSE)
-    }
-
-    
-  
-
-//    // Shows the result.
-//    println("Cluster Centers: ")
-//    model.clusterCenters.foreach(println)
+      val WSSSEthird = model.computeCost(transformedTrainingThird)
+      //println(i + ":  " + s"Within Set Sum of Squared Errors = $WSSSEthird")
+      println(WSSSEthird)
+   	}
 		
-		
-		
-
-		
-		println("kohta 3")
-		
-
-   }
+		println("Task 4 loppuu")
+  }
       
   
 
