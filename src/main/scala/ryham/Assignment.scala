@@ -211,16 +211,16 @@ object Assignment extends App {
     
     // For-loop calculates the Within Set Sum of Squared Errors for the
     // amount of clusters of our choosing
-//    for ( k <-2 to 400){		
-//       val kmeans = new KMeans()
-//  		.setK(k)
-//  		.setSeed(1L)
-//  		val model = kmeans.fit(transformedTraining)
-//  		// Evaluate clustering by computing Within Set Sum of Squared Errors
-//      val WSSSE = model.computeCost(transformedTraining)
-//      //println(i + ":  " + s"Within Set Sum of Squared Errors = $WSSSE")
-//      println(WSSSE)
-//   	}
+    for ( k <-50 to 100){		
+       val kmeans = new KMeans()
+  		.setK(k)
+  		.setSeed(1L)
+  		val model = kmeans.fit(transformedTraining)
+  		// Evaluate clustering by computing Within Set Sum of Squared Errors
+      val WSSSE = model.computeCost(transformedTraining)
+      //println(i + ":  " + s"Within Set Sum of Squared Errors = $WSSSE")
+      println(WSSSE)
+   	}
 
 		println("Here starts the Task 4 Third Dimension elbow task ---------------------------------------------------------------") 
     val dataVkpv: DataFrame = trafficAccidentDataFrame.select("X","Y","Vkpv").limit(3000)
@@ -247,7 +247,7 @@ object Assignment extends App {
 		k = 0
     // For-loop calculates the Within Set Sum of Squared Errors for the
     // amount of clusters of our choosing
-    for ( k <-2 to 400){		
+    for ( k <-50 to 100){		
        val kmeans = new KMeans()
   		.setK(k)
   		.setSeed(1L)
@@ -289,10 +289,11 @@ object Assignment extends App {
 //  trafficAccidentDataFrame.printSchema()
   
   // Asks the user input in format "task n" where n is 1-6
-  val name = scala.io.StdIn.readLine().split(" ")
+//  val name = scala.io.StdIn.readLine().split(" ")
   
   // Launches the right function matching the
-  name(1).toInt match {
+//  name(1).toInt match {
+  args(1).toInt match {
     case 1  => task1()
     case 2  => task2()
     case 4  => task4()
