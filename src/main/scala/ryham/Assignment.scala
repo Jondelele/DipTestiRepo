@@ -182,7 +182,7 @@ object Assignment extends App {
 			}
 		}
   
-  def task3() = {
+  def task4() = {
     
       println("Task3 alkaa")
       
@@ -211,15 +211,17 @@ object Assignment extends App {
     import org.apache.spark.ml.linalg.Vectors
     
     
-    for ( i <-100 to 200){		
+    for ( i <-2 to 400){		
        val kmeans = new KMeans()
   		.setK(i)
   		.setSeed(1L)
   		val model = kmeans.fit(transformedTraining)
   		// Evaluate clustering by computing Within Set Sum of Squared Errors
       val WSSSE = model.computeCost(transformedTraining)
-      println(i + ":  " + s"Within Set Sum of Squared Errors = $WSSSE")
+      //println(i + ":  " + s"Within Set Sum of Squared Errors = $WSSSE")
+      println(WSSSE)
     }
+
     
   
 
@@ -237,11 +239,6 @@ object Assignment extends App {
    }
       
   
-  def task4() = {
-    
-    
-      println("Task4 starting")
-   }
 
   def task5() = {
       println("Task5 starting")
@@ -275,7 +272,6 @@ object Assignment extends App {
   name(1).toInt match {
     case 1  => task1()
     case 2  => task2()
-    case 3  => task3()
     case 4  => task4()
     case 5  => task5()
     case 6  => task6()
